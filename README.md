@@ -121,7 +121,7 @@ Use this when handing in the assignment. Items marked `[x]` reflect what this re
 
 - [x] Public Git repository (GitHub, GitLab, Bitbucket).
 - [x] No employing-company name in **this** README’s title or body — **also** confirm your **remote repository name** meets the PDF rule before submit.
-- [ ] All changes committed, branch pushed — **then** confirm tests pass, **lint is clean**, and **no build errors** (`bun run test`, `bun run lint`, `bun run build`).
+- [x] All changes committed, branch pushed — **then** confirm tests pass, **lint is clean**, and **no build errors** (`bun run test`, `bun run lint`, `bun run build`).
 
 **README.md**
 
