@@ -1,0 +1,101 @@
+@let current = collection();
+
+<section class="page">
+  <a routerLink="/collections" class="back-link" aria-label="Back to collections">
+    ← Back to collections
+  </a>
+
+  @if (current) {
+    <header class="head">
+      <h1 #heading tabindex="-1">{{ current.name }}</h1>
+      <p class="count">
+        {{ collectionMovies().length }}
+        {{ collectionMovies().length === 1 ? 'movie' : 'movies' }}
+      </p>
+      <p-button label="Add movie" icon="pi pi-plus" (onClick)="openAddDialog()" />
+    </header>
+
+    @if (collectionMovies().length === 0) {
+      <p class="empty">No movies in this collection yet. Use “Add movie” to search TMDB.</p>
+    } @else {
+      <ul class="grid" aria-label="Movies in this collection">
+        @for (movie of collectionMovies(); track movie.id; let i = $index) {
+          <li class="grid-item">
+            <app-movie-card
+              [movie]="movie"
+              [posterPriority]="i === 0"
+              [removable]="true"
+              [genreLabel]="collectionGenreLabels().get(movie.id) ?? '—'"
+              (removed)="removeMovie($event)"
+            />
+          </li>
+        }
+      </ul>
+    }
+  } @else {
+    <h1 #heading tabindex="-1">Collection not found</h1>
+    <p>This collection doesn’t exist or was deleted.</p>
+  }
+
+  <p-dialog
+    header="Add movie"
+    [visible]="addDialogOpen()"
+    (visibleChange)="onAddDialogChange($event)"
+    [modal]="true"
+    [dismissableMask]="true"
+    [style]="{ width: 'min(90vw, 32rem)' }"
+  >
+    <section
+      class="dialog-body"
+      aria-label="Add movie"
+      [attr.aria-busy]="addSearchLoading() ? 'true' : null"
+    >
+      <label for="add-search">Search TMDB by title</label>
+      <p-iconfield iconPosition="right" class="add-search-field">
+        <input
+          id="add-search"
+          pInputText
+          type="search"
+          autocomplete="off"
+          [formControl]="addQueryControl"
+          placeholder="e.g. Dune, Inception"
+        />
+        <p-inputicon>
+          @if (addSearchLoading()) {
+            <p-progressSpinner
+              class="search-inline-spinner"
+              strokeWidth="4"
+              ariaLabel="Searching movies"
+            />
+          }
+        </p-inputicon>
+      </p-iconfield>
+
+      @if (addStatus() === 'error') {
+        <p-message severity="error" role="alert">{{
+          addError() || 'Search failed. Try again.'
+        }}</p-message>
+      }
+
+      @if (addStatus() === 'success' || addStatus() === 'idle') {
+        @if (
+          addStatus() === 'success' && !addResults().length && addLastTrimmedQuery()
+        ) {
+          <p class="empty">No matches.</p>
+        }
+        <ul class="results" aria-label="Search results">
+          @for (movie of addResults(); track movie.id) {
+            <li class="result">
+              <span class="result-title">{{ movie.title }}</span>
+              <p-button
+                [label]="isAlreadyAdded(movie.id) ? 'Added' : 'Add'"
+                [disabled]="isAlreadyAdded(movie.id)"
+                (onClick)="addMovie(movie)"
+              />
+            </li>
+          }
+        </ul>
+      }
+    </section>
+  </p-dialog>
+</section>

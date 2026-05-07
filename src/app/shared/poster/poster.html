@@ -1,0 +1,15 @@
+@let url = src();
+@let pri = priority();
+@if (url) {
+  <img
+    [ngSrc]="url"
+    [alt]="alt()"
+    width="300"
+    height="450"
+    [priority]="pri"
+    [attr.loading]="pri ? null : 'lazy'"
+    class="poster-img"
+  />
+} @else {
+  <div class="poster-placeholder" aria-hidden="true">🎬</div>
+}

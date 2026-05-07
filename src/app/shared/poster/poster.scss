@@ -1,0 +1,25 @@
+:host {
+  display: block;
+  inline-size: 100%;
+  aspect-ratio: 2 / 3;
+  background: var(--p-surface-100);
+  overflow: hidden;
+}
+
+.poster-img,
+.poster-placeholder {
+  inline-size: 100%;
+  block-size: 100%;
+  display: block;
+}
+
+.poster-img {
+  object-fit: cover;
+}
+
+.poster-placeholder {
+  display: grid;
+  place-items: center;
+  font-size: 2rem;
+  color: var(--p-text-muted-color);
+}

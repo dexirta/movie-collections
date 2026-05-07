@@ -1,0 +1,83 @@
+<section class="page">
+  <header class="head">
+    <h1 #heading tabindex="-1">Collections</h1>
+    <div class="head-actions">
+      @if (collections().length > 0) {
+        <div class="sort-field">
+          <label id="collection-sort-label" class="visually-hidden" for="collection-sort"
+            >Sort collections</label
+          >
+          <p-select
+            inputId="collection-sort"
+            ariaLabelledBy="collection-sort-label"
+            appendTo="body"
+            [options]="sortPresetOptions"
+            optionLabel="label"
+            optionValue="value"
+            [ngModel]="sortPreset()"
+            (ngModelChange)="sortPreset.set($event)"
+            [showClear]="false"
+            class="sort-select"
+          />
+        </div>
+      }
+      <p-button
+        label="New collection"
+        icon="pi pi-plus"
+        [attr.aria-haspopup]="'dialog'"
+        (onClick)="openCreate()"
+      />
+    </div>
+  </header>
+
+  <p-confirmDialog />
+
+  @if (collections().length === 0) {
+    <p class="empty">No collections yet. Create one to start saving movies.</p>
+  } @else {
+    <ul class="list" aria-label="Your collections">
+      @for (collection of sortedCollections(); track collection.id) {
+        <li class="list-item">
+          <a
+            class="link"
+            [routerLink]="['/collections', collection.id]"
+            [attr.aria-label]="'Open collection ' + collection.name"
+          >
+            <span class="name">{{ collection.name }}</span>
+            <span class="count">
+              {{ collection.movies.length }}
+              {{ collection.movies.length === 1 ? 'movie' : 'movies' }}
+            </span>
+          </a>
+          <p-button
+            icon="pi pi-trash"
+            severity="danger"
+            [text]="true"
+            [rounded]="true"
+            [attr.aria-label]="'Delete collection ' + collection.name"
+            (onClick)="confirmDelete(collection.id, collection.name)"
+          />
+        </li>
+      }
+    </ul>
+  }
+
+  <p-dialog
+    header="New collection"
+    [visible]="dialogOpen()"
+    (visibleChange)="dialogOpen.set($event)"
+    [modal]="true"
+    [closeOnEscape]="true"
+    [dismissableMask]="true"
+    [style]="{ width: 'min(90vw, 22rem)' }"
+  >
+    <form class="dialog-form" (submit)="onCreateFormSubmit($event)">
+      <label for="collection-name">Name</label>
+      <input id="collection-name" pInputText [formControl]="nameControl" autocomplete="off" />
+      <div class="dialog-actions">
+        <p-button label="Cancel" severity="secondary" type="button" (onClick)="closeCreate()" />
+        <p-button label="Create" type="submit" [disabled]="nameControl.invalid" />
+      </div>
+    </form>
+  </p-dialog>
+</section>

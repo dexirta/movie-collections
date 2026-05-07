@@ -1,0 +1,4 @@
+# Bun's built-in `bun test` does not load Jest or `src/setup-jest.ts`. This project
+# uses Jest for Angular; run `bun run test` (see package.json) instead of `bun test`.
+[test]
+pathIgnorePatterns = ["src/**/*.spec.ts"]

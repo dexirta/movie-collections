@@ -1,0 +1,55 @@
+@let currentMovie = movie();
+@let isRemovable = removable();
+<article
+  class="card"
+  [class.card--removable]="isRemovable"
+  [attr.aria-labelledby]="'movie-' + currentMovie.id"
+>
+  <app-poster
+    [posterPath]="currentMovie.poster_path"
+    [alt]="'Poster for ' + currentMovie.title"
+    [priority]="posterPriority()"
+  />
+  <div class="meta">
+    <p [id]="'movie-' + currentMovie.id" class="title">{{ currentMovie.title }}</p>
+    <p class="rating">
+      <span aria-hidden="true">★</span>
+      <span class="visually-hidden">Rating:</span>
+      {{ currentMovie.vote_average.toFixed(1) }}
+      <span class="muted">/ 10</span>
+    </p>
+    <p
+      class="genres"
+      [pTooltip]="genreLabel()"
+      tooltipPosition="top"
+      tooltipEvent="both"
+      [showOnEllipsis]="true"
+    >
+      {{ genreLabel() }}
+    </p>
+    @if (!isRemovable) {
+      <div class="actions">
+        <p-button
+          class="add-to-collection"
+          label="Add to collection"
+          [fluid]="true"
+          [disabled]="addToCollectionDisabled()"
+          [attr.aria-label]="'Add ' + currentMovie.title + ' to a collection'"
+          (onClick)="onAddToCollectionClick()"
+        />
+      </div>
+      @if (inCollectionNames().length > 0) {
+        <p class="tags">In: {{ inCollectionNames().join(', ') }}</p>
+      }
+    } @else {
+      <p-button
+        class="remove-button"
+        label="Remove"
+        severity="danger"
+        [fluid]="true"
+        [attr.aria-label]="'Remove ' + currentMovie.title + ' from this collection'"
+        (onClick)="onRemove()"
+      />
+    }
+  </div>
+</article>

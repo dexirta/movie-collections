@@ -1,0 +1,97 @@
+<section class="page">
+  <h1 #heading tabindex="-1">Movies</h1>
+
+  <section
+    class="search"
+    [attr.aria-busy]="searchUi().loading ? 'true' : null"
+    aria-label="Search movies"
+  >
+    <label for="movie-search">Search movies by title</label>
+    <p-iconfield iconPosition="right" class="search-field">
+      <input
+        id="movie-search"
+        pInputText
+        type="search"
+        autocomplete="off"
+        [formControl]="searchControl"
+        placeholder="e.g. Dune, Inception, Spirited Away"
+      />
+      <p-inputicon>
+        @if (searchUi().loading) {
+          <p-progressSpinner
+            class="search-inline-spinner"
+            strokeWidth="4"
+            ariaLabel="Searching movies"
+          />
+        }
+      </p-inputicon>
+    </p-iconfield>
+  </section>
+
+  @if (searchUi().emptyMessage; as emptyMsg) {
+    <p class="search-empty" role="status">{{ emptyMsg }}</p>
+  }
+
+  @if (errorMessage(); as message) {
+    <p-message severity="error" role="alert">{{ message }}</p-message>
+  }
+
+  @if (items().length > 0) {
+    <ul class="grid" aria-label="Movie results">
+      @for (movie of items(); track movie.id; let i = $index) {
+        <li class="grid-item">
+          <app-movie-card
+            [movie]="movie"
+            [posterPriority]="i === 0"
+            [genreLabel]="genreLabel(movie.id)"
+            [addToCollectionDisabled]="collectionOptions().length === 0"
+            [inCollectionNames]="collectionsContaining(movie.id)"
+            (addToCollectionClick)="openAddToCollection(movie)"
+          />
+        </li>
+      }
+    </ul>
+
+    @if (hasMore()) {
+      <div class="more">
+        <p-button
+          label="Load more"
+          severity="secondary"
+          [outlined]="true"
+          [disabled]="isLoading()"
+          (onClick)="loadMore()"
+        />
+      </div>
+    }
+  }
+</section>
+
+<p-dialog
+  [header]="addToCollectionDialogTitle()"
+  [visible]="addToCollectionDialogOpen()"
+  (visibleChange)="onAddToCollectionDialogChange($event)"
+  [modal]="true"
+  [dismissableMask]="true"
+  [style]="{ width: 'min(90vw, 32rem)' }"
+>
+  <section class="dialog-body" aria-label="Choose collection">
+    <label for="pick-collection">Collection</label>
+    <p-select
+      inputId="pick-collection"
+      appendTo="body"
+      [formControl]="addToCollectionCollectionId"
+      [options]="collectionOptions()"
+      optionLabel="label"
+      optionValue="value"
+      placeholder="Pick a collection"
+      [showClear]="true"
+      class="pick-collection"
+    />
+    <p-button
+      label="Add"
+      class="dialog-add"
+      [disabled]="!addToCollectionCollectionId.value"
+      (onClick)="confirmAddToCollection()"
+    />
+  </section>
+</p-dialog>
