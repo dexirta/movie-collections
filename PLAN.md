@@ -111,7 +111,7 @@ Detail-page TMDB search state is **not** in this slice — see `collection-detai
 | `collection-detail.spec.ts` | **`TmdbApiService` mock**, debounced search, loading/error/success, CRUD dispatches |
 | Others | see `README.md` |
 
-Coverage thresholds: `jest.config.cjs` — `state/` & `core/` high bars, global ≥ 65%.
+Coverage thresholds: full matrix in [`jest.config.cjs`](./jest.config.cjs) (lines/statements/functions/branches for `src/app/state/**`, `src/app/core/**`, and global).
 
 ## Accessibility & UI notes
 
@@ -122,4 +122,4 @@ Coverage thresholds: `jest.config.cjs` — `state/` & `core/` high bars, global 
 
 ## Out of scope
 
-Backend sync, `@ngrx/entity`, infinite scroll, dark mode, e2e (brief), SSR.
+Backend sync, `@ngrx/entity`, infinite scroll, user theme / appearance toggle, e2e (brief), SSR.

@@ -24,7 +24,7 @@ UUIDs for new collections come from **`ID_GENERATOR`** at dispatch time; the red
 
 **`movies.effects.ts`** — `loadGenresOnInit$`, `loadPopularOnInit$`, `loadPopular$`, `search$`, `loadMore$`. Discovery search is debounced in **`Movies`**; the effect receives **`searchSubmit`** and uses **`switchMap`** + **`catchError`** inside the inner observable so one failure does not complete the outer stream. **`loadMore$`** uses **`concatLatestFrom`** for mode/query/page/totalPages.
 
-**`collections.effects.ts`** — **`hydrate$`** (`ROOT_EFFECTS_INIT` → **`readCollections(STORAGE)`** → **`hydrate`**), **`persist$`** (four mutating actions → **`writeCollections`**, `dispatch: false`). No HTTP.
+**`collections.effects.ts`** — **`hydrate$`:** on `ROOT_EFFECTS_INIT`, maps to **`CollectionsActions.hydrate`** with **`readCollections(this.storage)`** (injected `STORAGE`). **`persist$`:** four mutating actions → **`writeCollections`**, `dispatch: false`. No HTTP.
 
 ## Trade-offs
 

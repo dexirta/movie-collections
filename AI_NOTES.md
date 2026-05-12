@@ -34,7 +34,7 @@ These entries record prompts, AI output, your edits, and rationale — per the V
 
 **AI output:** For NgRx search: `debounceTime` → `distinctUntilChanged` → `switchMap`. Often bundled with `retryWhen` / per-status failure actions.
 
-**My changes — Movies (`/movies`):** Kept `debounceTime(300)` + `distinctUntilChanged` on `searchControl` via `toDebouncedFormValueSignal` (`shared/debounced-form-value.ts`). An `effect` dispatches `MoviesActions.searchSubmit`. `movies.effects.ts` uses `ofType(searchSubmit)` → trim → empty query falls back to `loadPopular()`, else `switchMap(tmdb.searchMovies)` with **inner** `catchError` → `discoveryFailure`. No `retryWhen`; one string error channel.
+**My changes — Movies (`/movies`):** Kept `debounceTime(300)` + `distinctUntilChanged` on `searchControl` via `toDebouncedFormValueSignal` (`shared/debounced-form-value.ts`). An Angular **`effect()`** in `movies.ts` (not an NgRx effect) dispatches `MoviesActions.searchSubmit` when the debounced value changes. `movies.effects.ts` uses `ofType(searchSubmit)` → trim → empty query falls back to `loadPopular()`, else `switchMap(tmdb.searchMovies)` with **inner** `catchError` → `discoveryFailure`. No `retryWhen`; one string error channel.
 
 **My changes — Collection detail (`CollectionDetail`):** Did **not** add NgRx actions or `collections.effects` for TMDB. The add-movie dialog uses the same debounced helper, then `toObservable(debouncedSearch).pipe(filter, switchMap)` where each non-empty trimmed query emits `concat(of(loading snapshot), tmdb.searchMovies(trimmed, 1).pipe(map success, catchError → error snapshot)))`, consumed with `toSignal(..., { initialValue: idle })`. Mapper/errors reuse `toErrorMessage` from `core/tmdb-mappers.ts`. Unit tests **provide a mock `TmdbApiService`** (`collection-detail.spec.ts`).
 
@@ -60,7 +60,7 @@ These entries record prompts, AI output, your edits, and rationale — per the V
 
 **AI output:** Heavy `HttpClientTestingModule`, `done` callbacks, copy-pasted initial state objects.
 
-**My changes:** Centralized mothers in `testing/fixtures.ts` (`tmdbMovie`, `collection`, `collectionMovie`, `moviesState`, `collectionsState`). Used `firstValueFrom` for effects. `provideMockStore` for components; `provideMockActions` + `ReplaySubject` for effects. **Collection-detail** mocks `TmdbApiService`, not NgRx search actions. Jest `coverageThreshold`: `state/` and `core/` ≥ 80% lines/statements/functions, global ≥ 65%; `collectCoverageFrom` includes `src/app/**/*.ts` minus specs and `testing/`.
+**My changes:** Centralized mothers in `testing/fixtures.ts` (`tmdbMovie`, `collection`, `collectionMovie`, `moviesState`, `collectionsState`). Used `firstValueFrom` for effects. `provideMockStore` for components; `provideMockActions` + `ReplaySubject` for effects. **Collection-detail** mocks `TmdbApiService`, not NgRx search actions. Jest `coverageThreshold` and `collectCoverageFrom` are defined in `jest.config.cjs` (per-metric floors for `src/app/state/**`, `src/app/core/**`, and global; `collectCoverageFrom` is `src/app/**/*.ts` excluding specs and `src/app/testing/**`).
 
 **Why:** `done` hides timeouts. Shared fixtures keep tests readable. Coverage must include feature components so the threshold reflects real logic, not only `state/`.
 
@@ -70,17 +70,17 @@ These entries record prompts, AI output, your edits, and rationale — per the V
 
 Use this checklist when regenerating or reviewing the repo. Deviations should be intentional and documented.
 
-| Area | Must match |
-|------|------------|
-| **Angular** | Standalone components, zoneless (`provideZonelessChangeDetection`), `withComponentInputBinding()` for `:id` on detail. |
-| **Collections state** | `CollectionsState` = `{ collections: readonly Collection[] }` only — no transient TMDB/search fields. |
-| **Collections actions** | `Hydrate`, `Create`, `Delete`, `Add Movie`, `Remove Movie` — **no** add-search / TMDB actions. |
-| **Collections effects** | `hydrate$` (init → read `STORAGE` → `hydrate`), `persist$` (four mutations → `writeCollections`) — **no** TMDB. |
-| **Collections extra selector** | `selectCollectionNamesByMovieId` only (no `selectMoviesByCollectionId` / `selectCollectionById` in the feature). Detail page derives movies via `selectCollections` + `computed` + `route id`. |
-| **Movies feature** | Full discovery state + `movies.effects.ts` for all TMDB calls used by `/movies` (genres, popular, search, load more). |
-| **Detail TMDB UI** | `collection-detail.ts`: `inject(TmdbApiService)` + debounced control + `toObservable`/`switchMap`/`concat` loading pattern described in Entry 3. |
-| **Persistence** | `collections.storage.ts`: key `movie-collections`, `readCollections` / `writeCollections`, `STORAGE` injection token. |
-| **New collection ids** | `ID_GENERATOR` token at dispatch; reducer never generates ids. |
-| **Tests** | Jest; mock TMDB in effects (`TmdbApiService`) and in `collection-detail.spec.ts`; reducer + selector + component coverage as in `README.md` / `PLAN.md`. |
+| Area                           | Must match                                                                                                                                                                                                                           |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Angular**                    | Standalone components, zoneless (`provideZonelessChangeDetection`), `withComponentInputBinding()` for `:id` on detail.                                                                                                               |
+| **Collections state**          | `CollectionsState` = `{ collections: readonly Collection[] }` only — no transient TMDB/search fields.                                                                                                                                |
+| **Collections actions**        | `Hydrate`, `Create`, `Delete`, `Add Movie`, `Remove Movie` — **no** add-search / TMDB actions.                                                                                                                                       |
+| **Collections effects**        | `hydrate$`: on `ROOT_EFFECTS_INIT`, dispatch `hydrate` with `readCollections(injected STORAGE)` (single pipeline step in code). `persist$`: four mutations → `writeCollections`, `dispatch: false` — **no** TMDB.                    |
+| **Collections extra selector** | `selectCollectionNamesByMovieId` only (no `selectMoviesByCollectionId` / `selectCollectionById` in the feature). Detail page derives movies via `selectCollections` + `computed` + `route id`.                                       |
+| **Movies feature**             | Full discovery state + `movies.effects.ts` for all TMDB calls used by `/movies` (genres, popular, search, load more).                                                                                                                |
+| **Detail TMDB UI**             | `collection-detail.ts`: `inject(TmdbApiService)` + debounced control + `toObservable`/`switchMap`/`concat` loading pattern described in Entry 3.                                                                                     |
+| **Persistence**                | `collections.storage.ts`: key `movie-collections`, `readCollections` / `writeCollections`, `STORAGE` injection token.                                                                                                                |
+| **New collection ids**         | `ID_GENERATOR` token at dispatch; reducer never generates ids.                                                                                                                                                                       |
+| **Tests**                      | Jest; mock TMDB in effects (`TmdbApiService`) and in `collection-detail.spec.ts`; reducer + selector + component tests per brief. Coverage **thresholds** and `collectCoverageFrom`: `jest.config.cjs` (and summary in `README.md`). |
 
 **Key files:** `src/app/app.config.ts` (store + both effect classes), `src/app/state/movies.feature.ts`, `src/app/state/collections.feature.ts`, `src/app/state/movies.effects.ts`, `src/app/state/collections.effects.ts`, `src/app/features/collections/collection-detail/collection-detail.ts`, `src/app/shared/debounced-form-value.ts`.
